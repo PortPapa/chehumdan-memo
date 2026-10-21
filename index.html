@@ -96,6 +96,39 @@ aside#previewPane{position:sticky;top:78px;align-self:start}
 #fabPreview{display:none;position:fixed;right:16px;bottom:16px;z-index:40;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ---------- 쉬운 모드 ---------- */
+body.easy .wrap,body.easy #fabPreview,body.easy #btnSample,body.easy #btnReset,body.easy #btnCopy,body.easy #btnDown,body.easy .progress{display:none!important}
+body:not(.easy) #easy{display:none}
+#easy{max-width:560px;margin:0 auto;padding:14px 18px 0;min-height:calc(100dvh - 62px);display:flex;flex-direction:column}
+.e-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:13px;color:var(--sub)}
+.e-top button{border:0;background:none;color:var(--sub);padding:8px 2px;font-size:14px}
+.e-top button:last-child{text-align:right}
+.e-top button:first-child{text-align:left}
+.e-bar{height:4px;border-radius:3px;background:var(--line);margin:6px 0 24px}
+.e-bar i{display:block;height:100%;border-radius:3px;background:var(--acc);transition:width .3s}
+.e-src{font-size:13px;color:var(--acc-ink);font-weight:600;margin-bottom:6px}
+.e-q{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1.35;margin:0;word-break:keep-all}
+.e-sub{color:var(--sub);font-size:14.5px;margin:8px 0 0}
+.e-body{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.e-body .chips{gap:8px}
+.e-body .chip{padding:10px 15px;font-size:15px}
+.e-body textarea{min-height:90px;font-size:15px}
+.e-body textarea.big{min-height:190px}
+.e-body input[type=text]{font-size:15px;padding:12px 14px}
+.e-label{font-size:13px;color:var(--sub);font-weight:600;margin-top:10px}
+.e-row{display:flex;gap:8px}.e-row input{flex:1}
+.e-foot{position:sticky;bottom:0;margin-top:auto;padding:16px 0 20px;background:var(--bg)}
+.e-btn{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px 16px;font-size:16px;text-align:left;font-weight:500}
+.e-btn.on{border-color:var(--acc);background:var(--acc-soft);color:var(--acc-ink);font-weight:700}
+.e-btn.primary{background:var(--ink);color:#fff;border-color:var(--ink);text-align:center;font-weight:700}
+.e-btn.ghost{background:transparent;border-color:transparent;text-align:center;color:var(--sub)}
+.e-choices{display:flex;flex-direction:column;gap:8px}
+.mic{align-self:flex-start;margin-top:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13.5px}
+.mic.rec{border-color:var(--no);color:var(--no);background:var(--no-soft)}
+.e-tip{font-size:12.5px;color:var(--sub);margin-top:6px}
+#easy details{margin:10px 0 20px}
+#easy details summary{cursor:pointer;color:var(--sub);font-size:13.5px}
+#easy details pre{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.6;background:#1d1c1a;color:#ebe6dc;border-radius:12px;padding:14px;margin-top:8px}
 @media (max-width:1180px){.wrap{grid-template-columns:minmax(0,1fr) 400px}nav#toc{display:none}}
 @media (max-width:860px){
   .brand span{display:none}
@@ -116,6 +149,7 @@ aside#previewPane{position:sticky;top:78px;align-self:start}
 <header class="top">
   <div class="brand"><b>체험단 경험 메모</b><span>다녀와서 내 경험을 고르고 적으면, MD로 정리돼요</span></div>
   <div class="actions">
+    <button class="btn" id="btnMode" type="button">자세히 쓰기</button>
     <a class="btn" href="https://github.com/PortPapa/chehumdan-memo#readme" target="_blank" rel="noopener" style="text-decoration:none">사용법</a>
     <button class="btn" id="btnSample" type="button">예시 채우기</button>
     <button class="btn" id="btnReset" type="button">새로 쓰기</button>
@@ -125,6 +159,7 @@ aside#previewPane{position:sticky;top:78px;align-self:start}
   <div class="progress"><div id="bar"></div></div>
 </header>
 
+<section id="easy"></section>
 <main class="wrap">
   <nav id="toc"></nav>
   <section id="form"></section>
@@ -163,7 +198,7 @@ function slim(p){
 }
 function sanitize(p){
   if(!p||typeof p!=='object')return null;
-  const tn=l=>arr(l).map(h=>typeof h==='string'?{t:h,n:0}:{t:str(h&&h.t),n:Number(h&&h.n)||0}).filter(h=>h.t);
+  const tn=l=>arr(l).map(h=>typeof h==='string'?{t:h,n:0}:{t:str(h&&h.t),n:Number(h&&h.n)||0,...(h&&h.q?{q:str(h.q)}:{})}).filter(h=>h.t);
   const hints={};const H=p.hints||{};
   ['access','space','items','people','cons','info'].forEach(k=>{if(H[k])hints[k]=tn(H[k])});
   if(H.menu&&typeof H.menu==='object'){hints.menu={};Object.entries(H.menu).forEach(([k,v])=>hints.menu[str(k)]=tn(v))}
@@ -243,7 +278,7 @@ function priceRange(){
   return a===b?f(a):`${f(a)} ~ ${f(b)} (메뉴판 기준)`;
 }
 function init(){
-  const s={cat:'food',items:[newItem()],photos:flowOf('food'),h:{},f:{
+  const s={mode:'easy',step:0,cat:'food',items:[newItem()],photos:flowOf('food'),h:{},hnote:{},f:{
     consTone:{sel:'부드럽게 넣기',other:''}
   }};
   if(PLACE){
@@ -257,7 +292,7 @@ function init(){
 }
 let S=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.cat&&CATS[x.cat]){x.h=x.h||{};x.items.forEach(i=>i.h=i.h||{});return x}return null}catch(e){return null}}
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.cat&&CATS[x.cat]){x.h=x.h||{};x.hnote=x.hnote||{};x.items.forEach(i=>i.h=i.h||{});return x}return null}catch(e){return null}}
 
 /* ---------- 유틸 ---------- */
 const $=s=>document.querySelector(s);
@@ -344,7 +379,7 @@ function sections(){
     ]},
     (PLACE&&PLACE.voted&&PLACE.voted.length)?{id:'voted',title:'방문자 키워드, 나는?',desc:'플레이스 방문자들이 많이 고른 키워드예요(숫자는 투표 수). 내 경험과 비교해 보세요.',type:'voted'}:null,
     {id:'cons',title:'솔직히 아쉬웠던 점',desc:'한두 가지 아쉬움이 후기의 신뢰를 올려요.',fields:[
-      M('cons','아쉬운 점',C.cons),
+      M('cons','아쉬운 점',['딱히 없었어요',...C.cons]),
       A('consMemo','아쉬움 디테일','예: 평일엔 4시에 닫아서 늦게 가면 못 먹음'),
       R('consTone','글에 넣을지',['부드럽게 넣기','방문 팁으로 바꿔서','넣지 않기'],{other:false})
     ]},
@@ -363,7 +398,8 @@ function sections(){
     {id:'wrap',title:'총평·추천',fields:[
       M('recommend','이런 사람에게 추천',visit?['부모님 효도 외식','데이트','가족 외식','아이 동반','친구 모임','회식·단체','혼자','여행·등산 코스']:['아이 키우는 집','자취생','직장인','선물용','입문자','부모님']),
       R('revisit',visit?'재방문 의사':'재구매 의사',visit?['무조건 재방문','기회 되면 또','이 메뉴 먹으러 다시','글쎄']:['무조건 재구매','다 쓰면 고민','선물로 사줄 듯','글쎄']),
-      T('oneLine','내 말로 한 줄 총평','예: 산 다녀와서 국수 한 그릇에 메밀전까지 부쳐 먹는 재미가 있는 집')
+      T('oneLine','내 말로 한 줄 총평','예: 산 다녀와서 국수 한 그릇에 메밀전까지 부쳐 먹는 재미가 있는 집'),
+      A('freeMemo','생각나는 대로 남긴 메모','순서·말투 상관없이. 사진 넘겨보며 떠오르는 것')
     ]},
     {id:'photos',title:'사진 순서대로 메모',desc:'갤러리를 처음부터 넘기면서 사진마다 떠오르는 걸 적어주세요. 안 찍은 사진은 체크를 끄면 돼요.',type:'photos'}
   ];
@@ -574,7 +610,8 @@ function triLines(store,yesLabel,noLabel){
   const y=Object.keys(store).filter(k=>store[k]===1),n=Object.keys(store).filter(k=>store[k]===-1);
   const out=[];
   if(y.length)out.push(`- **${yesLabel||'남들도 말한 것 중 나도 그랬음'}**: ${y.join(', ')}`);
-  if(n.length)out.push(`- **${noLabel||'남들 후기와 내 경험이 달랐음'}**: ${n.join(', ')}`);
+  const nt=k=>{const x=S.hnote&&S.hnote[k];return x&&x.trim()?`${k} (내 경험: ${x.trim()})`:k};
+  if(n.length)out.push(`- **${noLabel||'남들 후기와 내 경험이 달랐음'}**: ${n.map(nt).join(', ')}`);
   return out;
 }
 function itemsMD(){
@@ -657,8 +694,8 @@ function checks(){
     ['방문 이유·내 이야기',!!(V('reasonStory')||V('reason'))],
     [C.item+' 디테일',S.items.some(i=>i.detail.trim())],
     ['동행자 반응',!!(V('reactStory')||V('react'))||sel('with').includes('혼자')],
-    ['솔직한 아쉬움',!!(V('cons')||V('consMemo'))||V('consTone')==='넣지 않기'],
-    ['사진 메모 3개+',S.photos.filter(p=>p.took&&p.memo.trim()).length>=3]
+    ['솔직한 아쉬움',!!(V('cons')||V('consMemo'))||V('consTone')==='넣지 않기'||Object.keys(S.h.cons||{}).length>0],
+    ['사진·자유 메모',!!V('freeMemo')||S.photos.filter(p=>p.took&&p.memo.trim()).length>=3]
   ];
 }
 function renderTOC(){
@@ -693,8 +730,171 @@ $('#btnCopy').onclick=async()=>{
   try{await navigator.clipboard.writeText(md)}catch(e){const t=document.createElement('textarea');t.value=md;document.body.append(t);t.select();document.execCommand('copy');t.remove()}
   toast('MD를 복사했어요.');
 };
-$('#btnReset').onclick=()=>{if(!confirm('지금 메모를 지우고 새로 쓸까요?'))return;S=init();renderForm();refresh();window.scrollTo(0,0)};
-$('#btnSample').onclick=()=>{if(V('biz')&&!confirm('지금 메모를 예시로 덮어쓸까요?'))return;S=sample();renderForm();refresh();toast('예시를 채웠어요.')};
+$('#btnReset').onclick=()=>{if(!confirm('지금 메모를 지우고 새로 쓸까요?'))return;S=init();setMode('easy')};
+$('#btnMode').onclick=()=>setMode(S.mode==='easy'?'full':'easy');
+
+/* ---------- 쉬운 모드 (질문 카드) ---------- */
+const ITEM_Q={food:'뭐 드셨어요?',cafe:'뭐 드셨어요?',beauty:'어떤 시술 받으셨어요?',stay:'어떤 객실·시설 이용하셨어요?',product:'어떤 제품 써보셨어요?',activity:'어떤 프로그램 하셨어요?'};
+function mv(id){let v=S.f[id];if(!v||typeof v!=='object'){v={sel:[],other:''};S.f[id]=v}if(!Array.isArray(v.sel))v.sel=v.sel?[v.sel]:[];return v}
+function rv(id){let v=S.f[id];if(!v||typeof v!=='object'){v={sel:'',other:''};S.f[id]=v}if(Array.isArray(v.sel))v.sel=v.sel[0]||'';return v}
+function eChips(opts,isOn,toggle,showN){
+  const box=el('div','chips');
+  opts.forEach(o=>{const t=typeof o==='string'?o:o.t;const b=el('button','chip'+(isOn(t)?' on':''));b.type='button';b.dataset.t=t;b.append(t);if(showN&&o.n)b.append(el('small','',String(o.n)));
+    b.onclick=()=>{toggle(t);box.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',isOn(x.dataset.t)));changed()};box.append(b)});
+  return box;
+}
+const mChips=(id,opts)=>{const v=mv(id);return eChips(opts,t=>v.sel.includes(t),t=>{const i=v.sel.indexOf(t);i>=0?v.sel.splice(i,1):v.sel.push(t)})};
+const rChips=(id,opts)=>{const v=rv(id);return eChips(opts,t=>v.sel===t,t=>{v.sel=v.sel===t?'':t})};
+const hChips=(store,list)=>eChips(list,t=>store[t]===1,t=>{if(store[t]===1)delete store[t];else store[t]=1},true);
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let REC=null;
+function micBtn(t,set){
+  if(!SR)return el('div','e-tip','키보드의 마이크 버튼을 누르고 말로 남겨도 돼요.');
+  const b=el('button','mic','말로 입력');b.type='button';
+  b.onclick=()=>{
+    if(REC){REC.stop();return}
+    const r=new SR();r.lang='ko-KR';r.continuous=true;r.interimResults=false;REC=r;
+    b.classList.add('rec');b.textContent='듣는 중… 다시 누르면 멈춰요';
+    r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){const s=e.results[i][0].transcript.trim();if(s){t.value=(t.value.trim()?t.value.trim()+' ':'')+s;set(t.value);changed()}}};
+    const end=()=>{REC=null;b.classList.remove('rec');b.textContent='말로 입력'};
+    r.onend=end;r.onerror=end;
+    try{r.start()}catch(e){end()}
+  };
+  return b;
+}
+function eText(get,set,ph,big,cls){
+  const w=el('div');const t=document.createElement(big?'textarea':'input');if(!big)t.type='text';if(cls)t.className=cls;
+  t.placeholder=ph||'';t.value=get()||'';t.oninput=()=>{set(t.value);changed()};w.append(t);
+  if(big)w.append(micBtn(t,set));
+  return w;
+}
+function hintPool(){
+  const H=PLACE&&PLACE.hints;if(!H)return[];
+  const pool=[];['items','access','space','people','info'].forEach(k=>(H[k]||[]).forEach((h,i)=>pool.push({...h,key:k,i})));
+  pool.sort((a,b)=>(b.n||0)-(a.n||0)||a.i-b.i);
+  const strong=pool.filter(h=>(h.n||0)>=2||h.q);
+  return (strong.length?strong:pool).slice(0,4);
+}
+function toggleItem(name,price){
+  const idx=S.items.findIndex(i=>i.name===name);
+  if(idx>=0)S.items.splice(idx,1);
+  else{S.items=S.items.filter(i=>i.name.trim()||i.detail.trim()||fv(i.tags));S.items.push(newItem(name,price||''))}
+  if(!S.items.length)S.items.push(newItem());
+}
+function easyCards(){
+  const C=CATS[S.cat],visit=S.cat!=='product',cards=[];
+  if(!PLACE)cards.push({id:'start',src:'시작',q:'어디 다녀왔어요?',body:b=>{
+    b.append(el('div','e-label','업체 이름'),eText(()=>S.f.biz,x=>S.f.biz=x,'예: 춘천 OO닭갈비'));
+    b.append(el('div','e-label','종류'));
+    const box=el('div','chips');
+    Object.entries(CATS).forEach(([k,c])=>{const x=el('button','chip'+(S.cat===k?' on':''),c.label);x.type='button';x.onclick=()=>{if(S.cat!==k){S.cat=k;S.photos=flowOf(k)}changed();renderEasy()};box.append(x)});
+    b.append(box);
+  }});
+  cards.push({id:'with',src:'누구랑',q:visit?'누구랑 갔어요?':'누구랑 같이 썼어요?',sub:'여러 개 골라도 돼요.',body:b=>{
+    b.append(mChips('with',['혼자','남편/아내','연인','아이','부모님','친구','직장 동료','반려견']));
+    b.append(el('div','e-label','조금 더 자세히 (선택)'),eText(()=>S.f.withDetail,x=>S.f.withDetail=x,'예: 남편, 7살·5살 아들 둘'));
+  }});
+  cards.push({id:'why',src:'왜',q:visit?'왜 가게 됐어요?':'왜 써보게 됐어요?',body:b=>{
+    b.append(mChips('reason',visit?['체험단 선정','여행 중','등산·나들이 후','집·회사 근처','기념일','부모님 효도','데이트','평소 궁금했던 곳','재방문']:['체험단 선정','평소 필요했던 제품','기존 제품 교체','선물용','후기 보고 궁금']));
+    b.append(el('div','e-label','얽힌 이야기가 있으면 한 줄 (선택)'),eText(()=>S.f.reasonStory,x=>S.f.reasonStory=x,'예: 출렁다리 갔다가 배고파서 들렀어요',true));
+  }});
+  const nb=(PLACE&&PLACE.blogs&&PLACE.blogs.length)||5;
+  hintPool().forEach(h=>cards.push({id:'h-'+h.key+'-'+h.t,src:`블로그 ${nb}개 중 ${h.n}개가 말했어요`,q:h.q||`“${h.t}”`,sub:h.q?'':'나도 그랬나요?',hint:h}));
+  cards.push({id:'menu',src:C.item,q:ITEM_Q[S.cat],sub:'여러 개 골라도 돼요.',body:b=>{
+    const pm=(PLACE&&PLACE.menus)||[];
+    if(pm.length){
+      const box=el('div','chips');
+      pm.forEach(m=>{const on=()=>S.items.some(i=>i.name===m.name);const x=el('button','chip'+(on()?' on':''));x.type='button';x.append(m.name);if(m.price)x.append(el('small','',m.price));
+        x.onclick=()=>{toggleItem(m.name,m.price);x.classList.toggle('on',on());changed();updTop()};box.append(x)});
+      b.append(box);
+    }
+    const row=el('div','e-row');const inp=document.createElement('input');inp.type='text';inp.placeholder=pm.length?'메뉴판에 없으면 직접 적기':'이름 적고 추가';
+    const add=el('button','btn','추가');add.type='button';
+    const doAdd=()=>{const v=inp.value.trim();if(!v)return;if(!S.items.some(i=>i.name===v))toggleItem(v,'');changed();renderEasy()};
+    add.onclick=doAdd;inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doAdd()}};
+    row.append(inp,add);b.append(el('div','e-label',pm.length?'직접 추가':'추가하기'),row);
+    const custom=S.items.filter(i=>i.name.trim()&&!pm.some(m=>m.name===i.name)).map(i=>i.name);
+    if(custom.length)b.append(eChips(custom,()=>true,t=>{toggleItem(t);setTimeout(renderEasy,0)}));
+  }});
+  S.items.filter(i=>i.name.trim()).slice(0,5).forEach(it=>cards.push({id:'item-'+it.name,src:it.name,q:'한마디로 어땠어요?',sub:'골라도 되고, 말로 남겨도 돼요.',body:b=>{
+    it.h=it.h||{};if(!it.tags||!Array.isArray(it.tags.sel))it.tags={sel:[],other:''};
+    const mh=menuHintsFor(it.name);
+    if(mh.length)b.append(el('div','e-label','다른 블로거들 얘기. 나도 그랬으면 눌러주세요'),hChips(it.h,mh));
+    b.append(el('div','e-label','내 느낌'),eChips(C.tags,t=>it.tags.sel.includes(t),t=>{const s=it.tags.sel;const i=s.indexOf(t);i>=0?s.splice(i,1):s.push(t)}));
+    b.append(el('div','e-label','한 줄 (선택)'),eText(()=>it.detail,x=>it.detail=x,C.detailPh,true));
+  }}));
+  const w=sel('with').filter(x=>x!=='기타');
+  if(!(w.length===1&&w[0]==='혼자'))cards.push({id:'react',src:'같이 간 사람',q:'같이 간 사람 반응은 어땠어요?',body:b=>{
+    b.append(mChips('react',['또 오자고 함','아이가 잘 먹음/좋아함','부모님이 만족하심','말없이 먹기만 함','사진 찍기 바빴음','포장해 감','추가 주문함']));
+    b.append(el('div','e-label','기억나는 장면 (선택)'),eText(()=>S.f.reactStory,x=>S.f.reactStory=x,'예: 아들이 메밀전을 두 번이나 직접 부쳤어요',true));
+  }});
+  cards.push({id:'cons',src:'솔직히',q:'아쉬웠던 점, 하나만 꼽는다면?',sub:'한두 개 있어야 후기가 더 믿음직해요.',body:b=>{
+    const hc=PLACE&&PLACE.hints&&PLACE.hints.cons;
+    if(hc&&hc.length){S.h.cons=S.h.cons||{};b.append(el('div','e-label','다른 블로거들이 아쉬워한 점. 나도 그랬으면 눌러주세요'),hChips(S.h.cons,hc))}
+    b.append(el('div','e-label','내가 느낀 것'),mChips('cons',['딱히 없었어요',...C.cons]));
+    b.append(el('div','e-label','한 줄 (선택)'),eText(()=>S.f.consMemo,x=>S.f.consMemo=x,'예: 평일엔 4시에 닫아서 늦게 가면 못 먹어요',true));
+  }});
+  cards.push({id:'wrap',src:'마무리',q:visit?'또 갈 거예요?':'또 살 거예요?',body:b=>{
+    b.append(rChips('revisit',visit?['무조건 재방문','기회 되면 또','이 메뉴 먹으러 다시','글쎄']:['무조건 재구매','다 쓰면 고민','선물로 사줄 듯','글쎄']));
+    b.append(el('div','e-label','누구한테 추천해요?'),mChips('recommend',visit?['가족 외식','아이 동반','부모님 효도 외식','데이트','친구 모임','회식·단체','혼자','여행·등산 코스']:['아이 키우는 집','자취생','직장인','선물용','입문자','부모님']));
+    b.append(el('div','e-label','내 말로 한 줄 총평 (선택)'),eText(()=>S.f.oneLine,x=>S.f.oneLine=x,'예: 산 다녀와서 국수 한 그릇 하기 딱 좋은 집'));
+  }});
+  cards.push({id:'free',src:'마지막',q:'사진 넘겨보면서 생각나는 거, 쭉 남겨주세요',sub:'순서도 말투도 상관없어요. 어차피 AI가 정리해요.',body:b=>{
+    b.append(eText(()=>S.f.freeMemo,x=>S.f.freeMemo=x,'예: 간판이 낡았는데 오히려 오래된 집 느낌. 메밀전은 얇게 부쳐야 바삭함. 애가 콩국수 맛보기를 두 번 달라고 함…',true,'big'));
+  }});
+  cards.push({id:'done',src:'끝',q:'정리 끝! 수고했어요',sub:'MD를 복사해서 AI 채팅창에 붙여넣거나 파일로 받으세요.',done:true,body:b=>{
+    const ul=el('ul','checks');checks().forEach(([t,ok])=>ul.append(el('li',ok?'ok':'',t)));b.append(ul);
+    const ch=el('div','e-choices');
+    const B=(label,cls,fn)=>{const x=el('button','e-btn '+cls,label);x.type='button';x.onclick=fn;ch.append(x)};
+    B('MD 복사','primary',()=>$('#btnCopy').click());
+    B('.md 파일 받기','',()=>$('#btnDown').click());
+    B('캠페인 가이드·키워드 적기 (선택)','',()=>setMode('full','sec-campaign'));
+    B('자세히 보완하기','',()=>setMode('full'));
+    B('처음부터 다시 보기','ghost',()=>goStep(0));
+    b.append(ch);
+    const d=el('details');d.append(el('summary','','MD 미리보기'));const pre=el('pre');pre.textContent=buildMD();d.append(pre);b.append(d);
+  }});
+  return cards;
+}
+function updTop(){
+  const n=easyCards().length;const sp=document.querySelector('#easy .e-top span');if(sp)sp.textContent=`${S.step+1} / ${n}`;
+  const i=document.querySelector('#easy .e-bar i');if(i)i.style.width=Math.round((S.step+1)/n*100)+'%';
+}
+function renderEasy(){
+  const box=$('#easy');box.innerHTML='';
+  const cards=easyCards();S.step=Math.max(0,Math.min(S.step||0,cards.length-1));
+  const c=cards[S.step];
+  const top=el('div','e-top');
+  const back=el('button','',S.step>0?'← 이전':'');back.type='button';back.onclick=()=>{if(S.step>0)goStep(S.step-1)};
+  const sk=el('button','',c.done?'':'건너뛰기');sk.type='button';sk.onclick=()=>{if(!c.done)go(1)};
+  top.append(back,el('span',''),sk);
+  const bar=el('div','e-bar');bar.append(el('i'));
+  box.append(top,bar);
+  if(c.src)box.append(el('div','e-src',c.src));
+  box.append(el('h1','e-q',c.q));if(c.sub)box.append(el('p','e-sub',c.sub));
+  const body=el('div','e-body');box.append(body);
+  let showNext=!c.hint&&!c.done;
+  if(c.hint){
+    const h=c.hint;S.h[h.key]=S.h[h.key]||{};S.hnote=S.hnote||{};const st=S.h[h.key];
+    const ch=el('div','e-choices');
+    const opt=(label,val)=>{const b=el('button','e-btn'+(val&&st[h.t]===val?' on':''),label);b.type='button';
+      b.onclick=()=>{if(val)st[h.t]=val;else delete st[h.t];if(val!==-1)delete S.hnote[h.t];changed();
+        if(val===-1){renderEasy();setTimeout(()=>{const t=document.querySelector('#easy textarea');t&&t.focus()},60)}else setTimeout(()=>go(1),160)};ch.append(b)};
+    opt('네, 나도 그랬어요',1);opt('아니요, 달랐어요',-1);opt('잘 모르겠어요',0);
+    body.append(ch);
+    if(st[h.t]===-1){body.append(el('div','e-label','어떻게 달랐어요? (선택)'),eText(()=>S.hnote[h.t],x=>S.hnote[h.t]=x,'예: 주말 점심인데 오히려 한산했어요',true));showNext=true}
+  }else if(c.body)c.body(body);
+  if(showNext){const f=el('div','e-foot');const n=el('button','e-btn primary','다음');n.type='button';n.onclick=()=>go(1);f.append(n);box.append(f)}
+  updTop();window.scrollTo(0,0);
+}
+function goStep(n){if(REC)REC.stop();S.step=n;save();renderEasy()}
+function go(d){goStep((S.step||0)+d)}
+function setMode(m,anchor){
+  S.mode=m;document.body.classList.toggle('easy',m==='easy');$('#btnMode').textContent=m==='easy'?'자세히 쓰기':'쉽게 쓰기';
+  if(m==='easy'){refresh();renderEasy()}
+  else{renderForm();refresh();setTimeout(()=>{const e=anchor&&document.getElementById(anchor);e?e.scrollIntoView():window.scrollTo(0,0)},50)}
+  save();
+}
+$('#btnSample').onclick=()=>{if(V('biz')&&!confirm('지금 메모를 예시로 덮어쓸까요?'))return;S=sample();S.mode='full';renderForm();refresh();toast('예시를 채웠어요.')};
 $('#fabPreview').onclick=()=>$('#previewPane').classList.add('open');
 $('#btnClose').onclick=()=>$('#previewPane').classList.remove('open');
 
@@ -730,7 +930,7 @@ async function boot(){
   KEY='chd-memo-v2'+(PLACE?'-'+PLACE.id:'');
   S=load()||init();
   if(PLACE)$('#btnSample').remove();
-  renderForm();refresh();
+  setMode(S.mode||'easy');
 }
 boot();
 </script>
